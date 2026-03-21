@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { extendSubscription, suspendShop, reactivateShop, sendPushNotification } from '@/app/actions'
+import { extendSubscription, setTrialPeriod, suspendShop, reactivateShop, sendPushNotification } from '@/app/actions'
 
 type ShopProps = {
   shop: any
@@ -17,6 +17,7 @@ export default function ShopClient({ shop, stats, payments, alerts, returns }: S
   const [loading, setLoading] = useState(false)
   const [pushTitle, setPushTitle] = useState('')
   const [pushBody, setPushBody] = useState('')
+  const [trialDays, setTrialDays] = useState('14')
   const [imgModal, setImgModal] = useState<string | null>(null)
 
   const handleAction = async (actionFn: () => Promise<void>, successMsg: string) => {
@@ -88,6 +89,27 @@ export default function ShopClient({ shop, stats, payments, alerts, returns }: S
                <button disabled={loading} onClick={() => handleAction(() => suspendShop(shop.id), 'Shop suspended')} className="bg-red-600 text-white px-4 py-2 rounded shadow-sm text-sm font-bold hover:bg-red-700 transition">Suspend Shop</button>
              )}
           </div>
+          <hr className="my-4 border-gray-200" />
+          
+          <div className="flex flex-col gap-2 mb-4">
+             <h4 className="text-xs font-bold text-gray-600 mb-1 leading-none">Manual Trial (Days)</h4>
+             <div className="flex gap-2">
+               <input 
+                 type="number" 
+                 value={trialDays} 
+                 onChange={e => setTrialDays(e.target.value)} 
+                 className="w-20 text-sm p-1 border border-gray-300 rounded focus:outline-none"
+               />
+               <button 
+                 disabled={loading} 
+                 onClick={() => handleAction(() => setTrialPeriod(shop.id, parseInt(trialDays)), `Trial set to ${trialDays} days`)}
+                 className="flex-1 bg-gray-200 text-gray-800 text-xs font-bold py-1 rounded hover:bg-gray-300 transition"
+               >
+                 Set Trial
+               </button>
+             </div>
+          </div>
+          
           <hr className="my-4 border-gray-200" />
           <form onSubmit={handleSendPush} className="flex flex-col gap-2">
              <h4 className="text-xs font-bold text-gray-600 mb-1">Inline Push Message</h4>

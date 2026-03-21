@@ -9,6 +9,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const links = [
     { label: 'Overview', href: '/', icon: '📊' },
+    { label: 'All Shops', href: '/shops', icon: '🏪' },
     { label: 'Pending Payments', href: '/payments/pending', icon: '💰' },
     { label: 'Returns DB', href: '/returns', icon: '📦' },
     { label: 'Push Broadcast', href: '/push', icon: '📣' },
