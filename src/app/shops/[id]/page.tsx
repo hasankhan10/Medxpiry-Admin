@@ -2,6 +2,7 @@ import React from 'react'
 import AdminLayout from '@/components/AdminLayout'
 import { supabase } from '@/lib/supabase'
 import ShopClient from '@/app/shops/[id]/ShopClient'
+import Link from 'next/link'
 
 export const revalidate = 0
 
@@ -52,6 +53,14 @@ export default async function ShopPage(props: { params: Promise<{ id: string }> 
 
   return (
     <AdminLayout>
+      <div className="mb-6">
+        <Link 
+          href="/shops" 
+          className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#C84B2F] transition-colors"
+        >
+          <span>←</span> Back to All Shops
+        </Link>
+      </div>
       <ShopClient 
         shop={shop} 
         stats={stats} 
