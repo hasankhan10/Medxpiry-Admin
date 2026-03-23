@@ -101,16 +101,17 @@ export async function reactivateShop(shopId: string) {
 }
 
 export async function setTrialPeriod(shopId: string, days: number) {
-  const newTrialDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString()
-  const { error } = await supabase
+  // ... existing code ...
+}
+
+export async function fetchReachableShops() {
+  const { data, error } = await supabase
     .from('shops')
-    .update({ 
-      trial_ends_at: newTrialDate,
-      subscription_ends_at: null,
-      subscription_status: 'trial'
-    })
-    .eq('id', shopId)
-  
+    .select('id, shop_name, owner_phone, push_token')
+    .not('push_token', 'is', null)
+    .order('shop_name', { ascending: true })
+    
   if (error) throw new Error(error.message)
+  return data
 }
 

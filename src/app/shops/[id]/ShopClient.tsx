@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { extendSubscription, setTrialPeriod, suspendShop, reactivateShop, sendPushNotification } from '@/app/actions'
+import LoadingButton from '@/components/LoadingButton'
 
 type ShopProps = {
   shop: any
@@ -54,68 +55,95 @@ export default function ShopClient({ shop, stats, payments, alerts, returns }: S
   const dt = (d: string) => new Date(d).toLocaleDateString('en-IN', { dateStyle: 'medium' })
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
       {/* HEADER / INFO GRID */}
-      <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-8 justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{shop.shop_name}</h1>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm mt-6">
-             <div><span className="text-gray-500 block">Owner Name</span><span className="font-semibold text-gray-800">{shop.owner_name}</span></div>
-             <div><span className="text-gray-500 block">Phone</span><span className="font-semibold text-gray-800">{shop.owner_phone}</span></div>
-             <div><span className="text-gray-500 block">City</span><span className="font-semibold text-gray-800">{shop.city}</span></div>
-             <div><span className="text-gray-500 block">Joined</span><span className="font-semibold text-gray-800">{dt(shop.created_at)}</span></div>
-             <div><span className="text-gray-500 block">Status</span>
-               <span className={`uppercase font-bold text-xs px-2 py-1 rounded inline-block mt-1
-                 ${shop.subscription_status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
-               `}>
-                 {shop.subscription_status}
-               </span>
-             </div>
-             <div><span className="text-gray-500 block">Sub Ends</span>
-               <span className="font-semibold text-gray-800">{dt(shop.subscription_ends_at || shop.trial_ends_at)}</span>
-             </div>
+      <div className="bg-white p-8 rounded-3xl shadow-xl shadow-[#00000005] border border-gray-50 flex flex-col md:flex-row gap-8 justify-between items-start">
+        <div className="flex-1">
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-4xl font-black text-gray-900 tracking-tight">{shop.shop_name}</h1>
+            <span className={`uppercase font-black text-[10px] tracking-widest px-3 py-1 rounded-full border 
+              ${shop.subscription_status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100'}
+            `}>
+              {shop.subscription_status}
+            </span>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-12 gap-y-6 text-sm mt-10">
+             <div><p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest mb-1">Owner Name</p><p className="font-bold text-gray-800 text-lg">{shop.owner_name}</p></div>
+             <div><p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest mb-1">Contact Phone</p><p className="font-bold text-gray-800 text-lg">{shop.owner_phone}</p></div>
+             <div><p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest mb-1">City / Region</p><p className="font-bold text-gray-800 text-lg">{shop.city}</p></div>
+             <div><p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest mb-1">System Joined</p><p className="font-bold text-gray-800">{dt(shop.created_at)}</p></div>
+             <div><p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest mb-1">Status Expiry</p><p className="font-bold text-[#C84B2F]">{dt(shop.subscription_ends_at || shop.trial_ends_at)}</p></div>
           </div>
         </div>
 
         {/* QUICK ACTIONS */}
-        <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 min-w-[300px]">
-          <h3 className="font-bold text-gray-800 mb-4 uppercase text-xs tracking-wider">Quick Actions</h3>
+        <div className="bg-gray-50 p-8 rounded-3xl border border-gray-100 min-w-[340px] shadow-inner">
+          <h3 className="font-black text-gray-900 mb-6 uppercase text-[10px] tracking-[0.2em] opacity-50">Quick Command Center</h3>
           <div className="flex flex-col gap-3">
-             <button disabled={loading} onClick={() => handleAction(() => extendSubscription(shop.id, 30), 'Extended 30 days')} className="bg-[#C84B2F] text-white px-4 py-2 rounded shadow-sm text-sm font-bold hover:bg-[#A83D25] transition">Extend 30 Days (Bonus)</button>
+             <LoadingButton 
+                isLoading={loading} 
+                onClick={() => handleAction(() => extendSubscription(shop.id, 30), 'Extended 30 days')}
+             >
+               Extend 30 Days (Bonus)
+             </LoadingButton>
+
              {shop.subscription_status === 'suspended' ? (
-               <button disabled={loading} onClick={() => handleAction(() => reactivateShop(shop.id), 'Shop active')} className="bg-green-600 text-white px-4 py-2 rounded shadow-sm text-sm font-bold hover:bg-green-700 transition">Reactivate Shop</button>
+               <LoadingButton 
+                  variant="success"
+                  isLoading={loading} 
+                  onClick={() => handleAction(() => reactivateShop(shop.id), 'Shop active')}
+               >
+                 Reactivate Shop Account
+               </LoadingButton>
              ) : (
-               <button disabled={loading} onClick={() => handleAction(() => suspendShop(shop.id), 'Shop suspended')} className="bg-red-600 text-white px-4 py-2 rounded shadow-sm text-sm font-bold hover:bg-red-700 transition">Suspend Shop</button>
+               <LoadingButton 
+                  variant="danger"
+                  isLoading={loading} 
+                  onClick={() => handleAction(() => suspendShop(shop.id), 'Shop suspended')}
+               >
+                 Suspend Shop Access
+               </LoadingButton>
              )}
           </div>
-          <hr className="my-4 border-gray-200" />
           
-          <div className="flex flex-col gap-2 mb-4">
-             <h4 className="text-xs font-bold text-gray-600 mb-1 leading-none">Manual Trial (Days)</h4>
+          <div className="my-8 h-[1px] bg-gray-200" />
+          
+          <div className="flex flex-col gap-3">
+             <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Special Grant (Days)</h4>
              <div className="flex gap-2">
                <input 
                  type="number" 
                  value={trialDays} 
                  onChange={e => setTrialDays(e.target.value)} 
-                 className="w-20 text-sm p-1 border border-gray-300 rounded focus:outline-none"
+                 className="w-20 text-md font-bold text-center bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#C84B2F]/20 focus:outline-none transition-all"
                />
-               <button 
-                 disabled={loading} 
+               <LoadingButton 
+                 variant="ghost"
+                 className="flex-1"
+                 isLoading={loading} 
                  onClick={() => handleAction(() => setTrialPeriod(shop.id, parseInt(trialDays)), `Trial set to ${trialDays} days`)}
-                 className="flex-1 bg-gray-200 text-gray-800 text-xs font-bold py-1 rounded hover:bg-gray-300 transition"
                >
-                 Set Trial
-               </button>
+                 Set Period
+               </LoadingButton>
              </div>
           </div>
           
-          <hr className="my-4 border-gray-200" />
-          <form onSubmit={handleSendPush} className="flex flex-col gap-2">
-             <h4 className="text-xs font-bold text-gray-600 mb-1">Inline Push Message</h4>
-             <input type="text" placeholder="Title (Max 50)" value={pushTitle} onChange={e=>setPushTitle(e.target.value)} required maxLength={50} className="w-full text-sm p-2 border border-gray-300 rounded focus:border-[#C84B2F] focus:outline-none" />
-             <input type="text" placeholder="Body (Max 120)" value={pushBody} onChange={e=>setPushBody(e.target.value)} required maxLength={120} className="w-full text-sm p-2 border border-gray-300 rounded focus:border-[#C84B2F] focus:outline-none" />
-             <button disabled={loading} type="submit" className="w-full mt-1 bg-gray-800 text-white text-xs font-bold py-2 rounded hover:bg-black transition">Broadcast Push Alert</button>
+          <div className="my-8 h-[1px] bg-gray-200" />
+
+          <form onSubmit={handleSendPush} className="flex flex-col gap-3">
+             <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Direct Push Notification</h4>
+             <input type="text" placeholder="Title (Max 50 characters)" value={pushTitle} onChange={e=>setPushTitle(e.target.value)} required maxLength={50} className="w-full text-sm font-semibold p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#C84B2F]/20 focus:outline-none transition-all" />
+             <input type="text" placeholder="Message content..." value={pushBody} onChange={e=>setPushBody(e.target.value)} required maxLength={120} className="w-full text-sm font-semibold p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#C84B2F]/20 focus:outline-none transition-all" />
+             <LoadingButton 
+                variant="secondary"
+                isLoading={loading} 
+                type="submit" 
+                className="mt-2"
+             >
+               Send Immediate Alert
+             </LoadingButton>
           </form>
         </div>
       </div>
@@ -142,8 +170,6 @@ export default function ShopClient({ shop, stats, payments, alerts, returns }: S
         </div>
       </div>
 
-      {/* TABLES TABS / STACKS */}
-      
       {/* 1. Payment History */}
       <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">

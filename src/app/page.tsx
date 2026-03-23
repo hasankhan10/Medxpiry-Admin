@@ -1,6 +1,7 @@
 import React from 'react'
 import AdminLayout from '../components/AdminLayout'
 import { supabase } from '../lib/supabase'
+import DashboardStats from '../components/DashboardStats'
 
 export const revalidate = 0 // always fresh
 
@@ -32,50 +33,46 @@ export default async function DashboardOverview() {
     .order('performed_at', { ascending: false })
     .limit(10)
 
+  const stats = [
+    { label: 'Total Shops', value: totalShops || 0, color: 'text-blue-500', icon: '🏪' },
+    { label: 'Active', value: activeShops || 0, color: 'text-emerald-500', icon: '💎' },
+    { label: 'On Trial', value: trialShops || 0, color: 'text-amber-500', icon: '⏳' },
+    { label: 'Pending Payouts', value: pendingPayments || 0, color: 'text-orange-500', icon: '💰' },
+    { label: 'Est. Revenue', value: `₹${revenue}`, color: 'text-indigo-600', icon: '📈' },
+  ]
+
   return (
     <AdminLayout>
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">Dashboard Overview</h1>
-
-      {/* STATS CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
-         {[
-           { label: 'Total Shops', value: totalShops || 0, color: 'text-blue-600', icon: '🏪' },
-           { label: 'Active', value: activeShops || 0, color: 'text-green-600', icon: '✅' },
-           { label: 'On Trial', value: trialShops || 0, color: 'text-yellow-600', icon: '⏳' },
-           { label: 'Pending Payments', value: pendingPayments || 0, color: 'text-red-600', icon: '💳' },
-           { label: 'Monthly Revenue', value: `₹${revenue}`, color: 'text-[#1E7A4A]', icon: '📈' },
-         ].map((stat, i) => (
-           <div key={i} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
-              <span className="text-3xl mb-3">{stat.icon}</span>
-              <p className="text-sm text-gray-500 font-semibold uppercase">{stat.label}</p>
-              <h3 className={`text-4xl font-bold mt-1 ${stat.color}`}>{stat.value}</h3>
-           </div>
-         ))}
+      <div className="flex flex-col gap-2 mb-10">
+        <h1 className="text-4xl font-black text-[#0F1117] tracking-tight">System Overview</h1>
+        <p className="text-gray-500 font-medium">Monitoring your health-tech ecosystem in real-time.</p>
       </div>
 
-      {/* ACTIVITY FEED */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
-        <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-          <span>⚡</span> Recent Admin Activity
+      <DashboardStats stats={stats} />
+
+      <div className="bg-white rounded-3xl shadow-xl shadow-[#00000005] border border-gray-50 p-8 md:p-10">
+        <h2 className="text-2xl font-black text-[#0F1117] mb-8 flex items-center gap-3">
+          <span className="w-10 h-10 bg-gray-50 flex items-center justify-center rounded-xl">⚡</span>
+          Recent Operations
         </h2>
         
         {recentActions && recentActions.length > 0 ? (
           <div className="space-y-4">
             {recentActions.map((action) => (
-              <div key={action.id} className="flex gap-4 p-4 rounded-lg bg-gray-50 items-start">
-                <div className="bg-gray-200 rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0 text-xl">
+              <div key={action.id} className="flex gap-4 p-4 rounded-lg bg-gray-50 items-start hover:bg-gray-100 transition-colors cursor-default">
+                <div className="bg-white rounded-full w-10 h-10 flex items-center justify-center shadow-sm flex-shrink-0 text-xl">
                   {action.action_type === 'extend_subscription' ? '📅' :
                    action.action_type === 'approve_payment' ? '✨' :
                    action.action_type === 'reject_payment' ? '❌' :
-                   action.action_type === 'send_push' ? '📣' : '⚙️'}
+                   action.action_type === 'manual_push' ? '📣' : '⚙️'}
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">{action.action_type}</p>
-                  <p className="text-sm text-gray-700 mt-1">{action.details}</p>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="font-bold text-gray-900 capitalize">{action.action_type.replace('_', ' ')}</p>
+                  <p className="text-sm text-gray-600 mt-0.5">{action.note}</p>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-2 bg-white px-2 py-0.5 rounded-full inline-block border border-gray-100">
                     {new Date(action.performed_at).toLocaleString('en-IN', {
                       dateStyle: 'medium', timeStyle: 'short'
-                    })} • Target ID: {action.target_id || 'System'}
+                    })}
                   </p>
                 </div>
               </div>
