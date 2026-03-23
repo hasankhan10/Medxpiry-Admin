@@ -74,20 +74,12 @@ export async function extendSubscription(shopId: string, days: number) {
 
 export async function sendPushNotification(shopId: string | 'all', title: string, body: string) {
   if (shopId === 'all') {
-    // If "all" is specified, fetch all tokens from Supabase and chunk them manually here
-    // But since backend doesn't have a broadcast-all endpoint specifically, we can loop
-    // But broadcast is rare, so we can do it effectively server side
-    const { data: shops } = await supabase.from('shops').select('id, expo_push_token').neq('expo_push_token', null)
-    if (!shops) return
-    
-    // To keep it simple, we loop backend requests (a scalable backend would have a dedicated block)
-    for (const shop of shops) {
-       await fetch(`${process.env.BACKEND_URL}/admin/send-push`, {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.BACKEND_ADMIN_KEY! },
-         body: JSON.stringify({ shopId: shop.id, title, body })
-       })
-    }
+    const res = await fetch(`${process.env.BACKEND_URL}/admin/broadcast-push`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.BACKEND_ADMIN_KEY! },
+      body: JSON.stringify({ title, body })
+    })
+    if (!res.ok) throw new Error('Failed to send broadcast')
   } else {
     const res = await fetch(`${process.env.BACKEND_URL}/admin/send-push`, {
       method: 'POST',
