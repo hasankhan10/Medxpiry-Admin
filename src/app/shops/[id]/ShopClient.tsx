@@ -15,16 +15,16 @@ type ShopProps = {
 
 export default function ShopClient({ shop, stats, payments, alerts, returns }: ShopProps) {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const [loadingAction, setLoadingAction] = useState<string | null>(null)
   const [pushTitle, setPushTitle] = useState('')
   const [pushBody, setPushBody] = useState('')
   const [trialDays, setTrialDays] = useState('14')
   const [imgModal, setImgModal] = useState<string | null>(null)
 
-  const handleAction = async (actionFn: () => Promise<void>, successMsg: string) => {
+  const handleAction = async (actionKey: string, actionFn: () => Promise<void>, successMsg: string) => {
     if (!confirm('Are you sure you want to perform this action?')) return
     
-    setLoading(true)
+    setLoadingAction(actionKey)
     try {
       await actionFn()
       alert(successMsg)
@@ -32,13 +32,13 @@ export default function ShopClient({ shop, stats, payments, alerts, returns }: S
     } catch (err: any) {
       alert(`Error: ${err.message}`)
     } finally {
-      setLoading(false)
+      setLoadingAction(null)
     }
   }
 
   const handleSendPush = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
+    setLoadingAction('push')
     try {
       await sendPushNotification(shop.id, pushTitle, pushBody)
       alert('Push notification sent to shop device.')
@@ -48,7 +48,7 @@ export default function ShopClient({ shop, stats, payments, alerts, returns }: S
     } catch (err: any) {
       alert(`Failed to send push: ${err.message}`)
     } finally {
-      setLoading(false)
+      setLoadingAction(null)
     }
   }
 
@@ -83,8 +83,8 @@ export default function ShopClient({ shop, stats, payments, alerts, returns }: S
           <h3 className="font-black text-gray-900 mb-6 uppercase text-[10px] tracking-[0.2em] opacity-50">Quick Command Center</h3>
           <div className="flex flex-col gap-3">
              <LoadingButton 
-                isLoading={loading} 
-                onClick={() => handleAction(() => extendSubscription(shop.id, 30), 'Extended 30 days')}
+                isLoading={loadingAction === 'extend'} 
+                onClick={() => handleAction('extend', () => extendSubscription(shop.id, 30), 'Extended 30 days')}
              >
                Extend 30 Days (Bonus)
              </LoadingButton>
@@ -92,16 +92,16 @@ export default function ShopClient({ shop, stats, payments, alerts, returns }: S
              {shop.subscription_status === 'suspended' ? (
                <LoadingButton 
                   variant="success"
-                  isLoading={loading} 
-                  onClick={() => handleAction(() => reactivateShop(shop.id), 'Shop active')}
+                  isLoading={loadingAction === 'status'} 
+                  onClick={() => handleAction('status', () => reactivateShop(shop.id), 'Shop active')}
                >
                  Reactivate Shop Account
                </LoadingButton>
              ) : (
                <LoadingButton 
                   variant="danger"
-                  isLoading={loading} 
-                  onClick={() => handleAction(() => suspendShop(shop.id), 'Shop suspended')}
+                  isLoading={loadingAction === 'status'} 
+                  onClick={() => handleAction('status', () => suspendShop(shop.id), 'Shop suspended')}
                >
                  Suspend Shop Access
                </LoadingButton>
@@ -117,13 +117,13 @@ export default function ShopClient({ shop, stats, payments, alerts, returns }: S
                  type="number" 
                  value={trialDays} 
                  onChange={e => setTrialDays(e.target.value)} 
-                 className="w-20 text-md font-bold text-center bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#C84B2F]/20 focus:outline-none transition-all"
+                 className="w-20 text-md font-bold text-center bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#C84B2F]/20 focus:outline-none transition-all text-black"
                />
                <LoadingButton 
                  variant="ghost"
                  className="flex-1"
-                 isLoading={loading} 
-                 onClick={() => handleAction(() => setTrialPeriod(shop.id, parseInt(trialDays)), `Trial set to ${trialDays} days`)}
+                 isLoading={loadingAction === 'trial'} 
+                 onClick={() => handleAction('trial', () => setTrialPeriod(shop.id, parseInt(trialDays)), `Trial set to ${trialDays} days`)}
                >
                  Set Period
                </LoadingButton>
@@ -134,11 +134,11 @@ export default function ShopClient({ shop, stats, payments, alerts, returns }: S
 
           <form onSubmit={handleSendPush} className="flex flex-col gap-3">
              <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Direct Push Notification</h4>
-             <input type="text" placeholder="Title (Max 50 characters)" value={pushTitle} onChange={e=>setPushTitle(e.target.value)} required maxLength={50} className="w-full text-sm font-semibold p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#C84B2F]/20 focus:outline-none transition-all" />
-             <input type="text" placeholder="Message content..." value={pushBody} onChange={e=>setPushBody(e.target.value)} required maxLength={120} className="w-full text-sm font-semibold p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#C84B2F]/20 focus:outline-none transition-all" />
+             <input type="text" placeholder="Title (Max 50 characters)" value={pushTitle} onChange={e=>setPushTitle(e.target.value)} required maxLength={50} className="w-full text-sm font-semibold p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#C84B2F]/20 focus:outline-none transition-all text-black" />
+             <input type="text" placeholder="Message content..." value={pushBody} onChange={e=>setPushBody(e.target.value)} required maxLength={120} className="w-full text-sm font-semibold p-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#C84B2F]/20 focus:outline-none transition-all text-black" />
              <LoadingButton 
                 variant="secondary"
-                isLoading={loading} 
+                isLoading={loadingAction === 'push'} 
                 type="submit" 
                 className="mt-2"
              >
