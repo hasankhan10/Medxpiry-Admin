@@ -86,7 +86,10 @@ export async function sendPushNotification(shopId: string | 'all', title: string
       headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.BACKEND_ADMIN_KEY! },
       body: JSON.stringify({ shopId, title, body })
     })
-    if (!res.ok) throw new Error('Failed to send push')
+    if (!res.ok) {
+      const err = await res.json()
+      throw new Error(err.error || 'Failed to send push')
+    }
   }
 }
 
